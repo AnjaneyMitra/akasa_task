@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""
-FlightOps Pulse Pipeline
-Data Engineering Pipeline for Airline Flight Operations Data
-
-Author: Claude (Sonnet 4.5)
-Date: 2025-11-14
-"""
 
 import pandas as pd
 import mysql.connector
