@@ -98,3 +98,5 @@ htmlcov/
 # Verification/temporary files
 DELIVERABLES_CHECKLIST.md
 VERIFICATION_SUMMARY.md
+
+.env

@@ -250,9 +250,30 @@ akasa_assignment/
 ├── .env                # Database credentials (create from .env.example)
 ├── .env.example        # Template for .env
 ├── README.md           # This file
+├── scripts/
+│   ├── export_to_csv.py          # Export metrics to CSV files
+│   └── generate_visualizations.py # Create charts from metrics
 └── output/
-    └── metrics.json    # Generated metrics (7 KPIs)
+    ├── metrics.json              # Generated metrics (7 KPIs)
+    ├── csv_outputs/              # CSV exports (4 files)
+    └── visualizations/           # Charts and graphs (5 PNG files)
 ```
+
+### Additional Scripts
+
+**Export to CSV:**
+```bash
+python scripts/export_to_csv.py
+```
+Exports metrics to 4 CSV files: summary metrics, top routes, aircraft utilization, and top revenue aircraft.
+
+**Generate Visualizations:**
+```bash
+python scripts/generate_visualizations.py
+```
+Creates 5 charts: flight status distribution, top routes, aircraft utilization, revenue by aircraft, and metrics dashboard.
+
+> **Note:** Visualization requires `matplotlib`. Install with: `pip install matplotlib`
 
 ---
 
