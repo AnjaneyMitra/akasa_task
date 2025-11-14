@@ -165,86 +165,89 @@ class FlightOpsDataPipeline:
         df = self.df_clean.copy()
         metrics = {}
         
-        # Metric 1: Total flights (after deduplication)
-        metrics['total_flights'] = len(df)
-        print(f"✓ Total flights: {metrics['total_flights']}")
+        # Metric 1: Unique flights (after deduplication)
+        unique_flights = len(df)
+        metrics['unique_flights'] = unique_flights
+        print(f"✓ Unique flights: {unique_flights}")
         
         # Separate completed and cancelled flights
         df_completed = df[df['status'] == 'completed'].copy()
         df_cancelled = df[df['status'] == 'cancelled'].copy()
         
-        metrics['completed_flights'] = len(df_completed)
-        print(f"✓ Completed flights: {metrics['completed_flights']}")
+        completed_flights = len(df_completed)
+        metrics['completed_flights'] = completed_flights
+        print(f"✓ Completed flights: {completed_flights}")
         
-        # Metric 2: Cancellation rate
-        metrics['cancellation_rate'] = round(
-            (len(df_cancelled) / metrics['total_flights']) * 100, 2
-        ) if metrics['total_flights'] > 0 else 0.0
-        print(f"✓ Cancellation rate: {metrics['cancellation_rate']}%")
+        # Metric 2: Cancellation rate (formatted as string with %)
+        cancellation_rate_value = round(
+            (len(df_cancelled) / unique_flights) * 100, 2
+        ) if unique_flights > 0 else 0.0
         
-        # Metric 3: Average delay (only for completed flights)
-        # Calculate delay from timestamps (ignore delay_minutes column)
+        # Format as "20%" or "16.02%" depending on decimal places
+        if cancellation_rate_value == int(cancellation_rate_value):
+            metrics['cancellation_rate'] = f"{int(cancellation_rate_value)}%"
+        else:
+            metrics['cancellation_rate'] = f"{cancellation_rate_value}%"
+        
+        print(f"✓ Cancellation rate: {metrics['cancellation_rate']}")
+        
+        # Metric 3: Average delay (formatted as string with "min")
         if len(df_completed) > 0:
             df_completed['calculated_delay'] = (
                 df_completed['actual_departure'] - df_completed['scheduled_departure']
             ).dt.total_seconds() / 60  # Convert to minutes
             
-            metrics['average_delay_minutes'] = round(
-                df_completed['calculated_delay'].mean(), 2
-            )
+            avg_delay = round(df_completed['calculated_delay'].mean(), 2)
+            metrics['average_delay'] = f"{avg_delay} min"
         else:
-            metrics['average_delay_minutes'] = 0.0
+            metrics['average_delay'] = "0 min"
         
-        print(f"✓ Average delay: {metrics['average_delay_minutes']} minutes")
+        print(f"✓ Average delay: {metrics['average_delay']}")
         
-        # Metric 4: Median duration (only for completed flights)
+        # Metric 4: Median duration (formatted as string with "~min")
         if len(df_completed) > 0:
             df_completed['calculated_duration'] = (
                 df_completed['actual_arrival'] - df_completed['actual_departure']
             ).dt.total_seconds() / 60  # Convert to minutes
             
-            metrics['median_duration_minutes'] = round(
-                df_completed['calculated_duration'].median(), 2
-            )
+            median_dur = round(df_completed['calculated_duration'].median(), 2)
+            # Format as "~120 min" (with tilde for approximation)
+            if median_dur == int(median_dur):
+                metrics['median_duration'] = f"~{int(median_dur)} min"
+            else:
+                metrics['median_duration'] = f"~{median_dur} min"
         else:
-            metrics['median_duration_minutes'] = 0.0
+            metrics['median_duration'] = "~0 min"
         
-        print(f"✓ Median duration: {metrics['median_duration_minutes']} minutes")
+        print(f"✓ Median duration: {metrics['median_duration']}")
         
-        # Metric 5: Top 3 routes
+        # Metric 5: Top 3 routes (formatted as string with counts)
         df['route'] = df['origin'] + '→' + df['destination']
         route_counts = df['route'].value_counts().head(3)
         
-        metrics['top_routes'] = [
-            {"route": route, "count": int(count)}
-            for route, count in route_counts.items()
-        ]
+        # Format as "MUM→DEL (3), DEL→BLR (2), MUM→BLR (1)"
+        route_strings = [f"{route} ({count})" for route, count in route_counts.items()]
+        metrics['top_routes'] = ", ".join(route_strings)
         
-        print(f"✓ Top 3 routes:")
-        for i, route in enumerate(metrics['top_routes'], 1):
-            print(f"  {i}. {route['route']}: {route['count']} flights")
+        print(f"✓ Top routes: {metrics['top_routes']}")
         
-        # Metric 6: Aircraft utilization (count per aircraft_id)
-        aircraft_counts = df['aircraft_id'].value_counts().to_dict()
-        metrics['aircraft_utilization'] = {
-            aircraft: int(count) for aircraft, count in aircraft_counts.items()
-        }
+        # Metric 6: Aircraft utilization (formatted as string)
+        aircraft_counts = df['aircraft_id'].value_counts().sort_values(ascending=False).to_dict()
         
-        print(f"✓ Aircraft utilization:")
-        for aircraft, count in sorted(metrics['aircraft_utilization'].items()):
-            print(f"  {aircraft}: {count} flights")
+        # Format as "A320 (4), B737 (3), B787 (2)"
+        aircraft_strings = [f"{aircraft} ({count})" for aircraft, count in aircraft_counts.items()]
+        metrics['aircraft_utilization'] = ", ".join(aircraft_strings)
         
-        # Metric 7: Top 2 aircraft by revenue
+        print(f"✓ Aircraft utilization: {metrics['aircraft_utilization']}")
+        
+        # Metric 7: Top 2 aircraft by revenue (formatted as string with $)
         aircraft_revenue = df.groupby('aircraft_id')['fare_usd'].sum().sort_values(ascending=False).head(2)
         
-        metrics['top_aircraft_by_revenue'] = [
-            {"aircraft": aircraft, "revenue": round(float(revenue), 2)}
-            for aircraft, revenue in aircraft_revenue.items()
-        ]
+        # Format as "A320 = $525, B737 = $420"
+        revenue_strings = [f"{aircraft} = ${int(revenue)}" for aircraft, revenue in aircraft_revenue.items()]
+        metrics['top_aircraft_by_revenue'] = ", ".join(revenue_strings)
         
-        print(f"✓ Top 2 aircraft by revenue:")
-        for i, aircraft in enumerate(metrics['top_aircraft_by_revenue'], 1):
-            print(f"  {i}. {aircraft['aircraft']}: ${aircraft['revenue']:.2f}")
+        print(f"✓ Top aircraft by revenue: {metrics['top_aircraft_by_revenue']}")
         
         self.metrics = metrics
         return metrics
