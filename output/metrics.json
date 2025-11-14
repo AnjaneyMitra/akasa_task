@@ -1,0 +1,39 @@
+{
+  "total_flights": 980,
+  "completed_flights": 823,
+  "cancellation_rate": 16.02,
+  "average_delay_minutes": 12.91,
+  "median_duration_minutes": 141.0,
+  "top_routes": [
+    {
+      "route": "GOI\u2192CCU",
+      "count": 34
+    },
+    {
+      "route": "MUM\u2192PNQ",
+      "count": 31
+    },
+    {
+      "route": "BLR\u2192CCU",
+      "count": 29
+    }
+  ],
+  "aircraft_utilization": {
+    "B737": 167,
+    "A320": 166,
+    "B787": 164,
+    "B777": 163,
+    "A350": 161,
+    "A321": 159
+  },
+  "top_aircraft_by_revenue": [
+    {
+      "aircraft": "B737",
+      "revenue": 23081.0
+    },
+    {
+      "aircraft": "A350",
+      "revenue": 22666.0
+    }
+  ]
+}
